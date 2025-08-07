@@ -1,0 +1,51 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./src:/var/www
+      - ./env/nginx/:/etc/nginx/conf.d
+    ports:
+      - "8080:80"
+    depends_on:
+      - app
+    container_name: tt_nginx
+
+  app:
+    build:
+      context: .
+      dockerfile: env/app/Dockerfile
+    volumes:
+      - ./src:/var/www
+    depends_on:
+        - db
+    container_name: tt_app
+
+  db:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: "tt_db"
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "root"
+    ports:
+      - "8090:5432"
+    container_name: tt_database
+    
+#  redis:
+#    image: redis:latest
+#    container_name: redis
+#    ports:
+#      - "6379:6379"
+#    volumes:
+#      - redis_data:/data
+#      - ./redis.conf:/usr/local/etc/redis/redis.conf
+#    command: redis-server /usr/local/etc/redis/redis.conf
+#    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

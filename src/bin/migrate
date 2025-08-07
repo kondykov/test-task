@@ -1,0 +1,34 @@
+#!/usr/bin/env php
+<?php
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../App/Database.php';
+
+use App\Database;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
+use Doctrine\Migrations\Configuration\Migration\PhpFile;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\Migrations\Tools\Console\Command\GenerateCommand;
+use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
+use Doctrine\Migrations\Tools\Console\Command\StatusCommand;
+use Symfony\Component\Console\Application;
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->safeLoad();
+
+$config = new PhpFile(__DIR__ . '/../config/migrations.php');
+$connection = DriverManager::getConnection(Database::getConnectionParams());
+
+$dependencyFactory = DependencyFactory::fromConnection(
+    $config,
+    new ExistingConnection($connection)
+);
+
+$application = new Application('Doctrine Migrations');
+$application->addCommands([
+    new MigrateCommand($dependencyFactory),
+    new GenerateCommand($dependencyFactory),
+    new StatusCommand($dependencyFactory),
+]);
+
+$application->run();
