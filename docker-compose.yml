@@ -28,20 +28,19 @@ services:
       POSTGRES_DB: "tt_db"
       POSTGRES_USER: "root"
       POSTGRES_PASSWORD: "root"
+    volumes:
+      - postgres_data:/tmp
     ports:
       - "8090:5432"
     container_name: tt_database
     
-#  redis:
-#    image: redis:latest
-#    container_name: redis
-#    ports:
-#      - "6379:6379"
-#    volumes:
-#      - redis_data:/data
-#      - ./redis.conf:/usr/local/etc/redis/redis.conf
-#    command: redis-server /usr/local/etc/redis/redis.conf
-#    restart: unless-stopped
+  redis:
+    image: redis:latest
+    ports:
+      - "8091:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
 
 networks:
   app-network:
@@ -49,3 +48,4 @@ networks:
 
 volumes:
   postgres_data:
+  redis_data:
