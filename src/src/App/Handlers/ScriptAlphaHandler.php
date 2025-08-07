@@ -9,7 +9,7 @@ use App\Models\Order;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ServerRequestInterface;
 
-class ScriptAHandler
+class ScriptAlphaHandler
 {
     public function __construct(
         private ProductRepositoryInterface $productRepository,
@@ -31,16 +31,20 @@ class ScriptAHandler
 
         $redis->set("script_A_is_locked", true);
         $parsedBody = json_decode($request->getBody()->getContents());
-        $product = $this->productRepository->getById($parsedBody->product_id);
+        $product = $this->productRepository->findById($parsedBody->product_id);
+        if (!$product) {
+            $redis->set("script_A_is_locked", false);
+            throw new \Exception("Продукта с id:$parsedBody->product_id не существует", 422);
+        }
 
         $order = new Order();
         $order->setProductId($product->getId());
 
         $order = $this->orderRepository->save($order);
-        
+
         sleep(1);
         $redis->set("script_A_is_locked", false);
-        
+
         return new JsonResponse(['data' => [
             'id' => $order->getId(),
             'product_id' => $order->getProductId(),

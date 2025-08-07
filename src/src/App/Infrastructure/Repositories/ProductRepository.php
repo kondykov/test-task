@@ -30,18 +30,20 @@ class ProductRepository implements ProductRepositoryInterface
     /**
      * @throws \Exception
      */
-    function getById(int $id): Product
+    function findById(int $id): ?Product
     {
+        $redis = Database::getRedisConnection();
+
         $connection = Database::getConnection();
         $connection->beginTransaction();
 
         $stmt = $connection->prepare("SELECT * FROM products WHERE id = :id");
         $stmt->execute(['id' => $id]);
         $result = $stmt->fetch();
-        
+
         if (!$result) {
             $connection->rollback();
-            throw new \Exception("Продукта с id:$id не существует", 422);
+            return null;
         }
 
         $product = new Product();
@@ -77,6 +79,33 @@ class ProductRepository implements ProductRepositoryInterface
                 'id' => $product->getId(),
                 'title' => $product->getTitle(),
                 'category_id' => $categoryId
+            ];
+        }
+
+        return $products;
+    }
+
+    function getAll(): array
+    {
+        $connection = Database::getConnection();
+        $connection->beginTransaction();
+
+        $stmt = $connection->prepare("SELECT * FROM product_category LEFT JOIN public.categories c on product_category.category_id = c.id");
+        $stmt->execute();
+        $result = $stmt->fetchAll();
+
+        $products = [];
+
+        foreach ($result as $productArray) {
+            $product = new Product();
+            $product->setId($productArray['id']);
+            $product->setTitle($productArray['title']);
+            $product->setCategoryId($productArray['category_id']);
+
+            $products[] = [
+                'id' => $product->getId(),
+                'title' => $product->getTitle(),
+                'category_id' => $product->getCategoryId()
             ];
         }
 

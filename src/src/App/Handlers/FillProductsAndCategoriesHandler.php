@@ -53,7 +53,7 @@ class FillProductsAndCategoriesHandler
 
         $products = [];
         $j = 1; // loop category id
-        for ($i = 1; $i < 10; $i++) {
+        for ($i = 1; $i < 150; $i++) {
             $product = new Product();
             $product->setTitle("Product $i");
             $product->setCategoryId($j);

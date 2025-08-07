@@ -8,5 +8,6 @@ interface ProductRepositoryInterface
 {
     function save(Product $product): Product;
     function getByCategoryId(int $categoryId): array;
-    function getById(int $id): Product;
+    function findById(int $id): ?Product;
+    function getAll(): array;
 }

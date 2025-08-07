@@ -2,7 +2,8 @@
 
 namespace App;
 
-use App\Handlers\ScriptAHandler;
+use App\Handlers\ScriptAlphaHandler;
+use App\Handlers\ScriptBetaHandler;
 use App\Infrastructure\OrderRepositoryInterface;
 use App\Infrastructure\ProductRepositoryInterface;
 use App\Infrastructure\Repositories\OrderRepository;
@@ -22,9 +23,14 @@ readonly class Application
         $container->add(ProductRepositoryInterface::class, ProductRepository::class);
         $container->add(OrderRepositoryInterface::class, OrderRepository::class);
 
-        $container->add(ScriptAHandler::class)
+        $container->add(ScriptAlphaHandler::class)
             ->addArgument($container->get(ProductRepositoryInterface::class))
             ->addArgument($container->get(OrderRepositoryInterface::class));
+
+        $container->add(ScriptBetaHandler::class)
+            ->addArgument($container->get(ScriptAlphaHandler::class))
+            ->addArgument($container->get(ProductRepositoryInterface::class));
+
 
         $this->router = new ApplicationRouter($container);
     }

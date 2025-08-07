@@ -1,15 +1,15 @@
 <?php
 
-/** @var ApplicationRouter $router */
-
 use App\ApplicationRouter;
 use App\Handlers\FillProductsAndCategoriesHandler;
-use App\Handlers\ScriptAHandler;
+use App\Handlers\ScriptAlphaHandler;
+use App\Handlers\ScriptBetaHandler;
 use Laminas\Diactoros\Response\JsonResponse;
 
+/** @var ApplicationRouter $router */
 return function ($router) {
-    $router->get('/', ScriptAHandler::class);
-    $router->post('/create-order', ScriptAHandler::class);
+    $router->post('/call-beta-handler', ScriptBetaHandler::class);
+    $router->post('/create-order', ScriptAlphaHandler::class);
     $router->get('/fill-products', FillProductsAndCategoriesHandler::class);
 
     // not found - 404
