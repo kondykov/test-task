@@ -3,6 +3,7 @@
 namespace App\Handlers;
 
 use App\Database;
+use App\Infrastructure\CategoryRepositoryInterface;
 use App\Infrastructure\ProductRepositoryInterface;
 use App\Models\Category;
 use App\Models\Product;
@@ -12,15 +13,15 @@ use Psr\Http\Message\ServerRequestInterface;
 
 class FillProductsAndCategoriesHandler
 {
-    public function __construct(private ProductRepositoryInterface $productRepository)
+    public function __construct(
+        private ProductRepositoryInterface  $productRepository,
+        private CategoryRepositoryInterface $categoryRepository,
+    )
     {
     }
 
     public function __invoke(ServerRequestInterface $request): ResponseInterface
     {
-        $connection = Database::getConnection();
-        $connection->beginTransaction();
-
         $firstCategory = new Category();
         $firstCategory->setTitle("First category");
 
@@ -37,19 +38,13 @@ class FillProductsAndCategoriesHandler
         ];
 
         foreach ($categories as $category) {
-            $stmt = $connection->prepare("SELECT * FROM categories WHERE title = :title");
-            $stmt->execute([$category->getTitle()]);
-            $result = $stmt->fetchAll();
-            if (empty($result)) {
-                $stmt = $connection->prepare("INSERT INTO categories (title) VALUES (:title)");
-                $stmt->execute([$category->getTitle()]);
-                $category->setId($connection->lastInsertId());
+            $categoryExists = $this->categoryRepository->findByTitle($category->getTitle());
+            if (empty($categoryExists)) {
+                $this->categoryRepository->save($category);
             } else {
-                $category->setId($result[0]['id']);
+                $category->setId($categoryExists->getId());
             }
         }
-
-        $connection->commit();
 
         $products = [];
         $j = 1; // loop category id
@@ -68,15 +63,15 @@ class FillProductsAndCategoriesHandler
             $products[] = $product;
         }
 
-        $result = [];
+        $categoryExists = [];
         foreach ($products as $product) {
-            $result[] = [
+            $categoryExists[] = [
                 'id' => $product->getId(),
                 'title' => $product->getTitle(),
                 'category_id' => $product->getCategoryId(),
             ];
         }
 
-        return new JsonResponse($result);
+        return new JsonResponse($categoryExists);
     }
 }

@@ -90,7 +90,14 @@ class ProductRepository implements ProductRepositoryInterface
         $connection = Database::getConnection();
         $connection->beginTransaction();
 
-        $stmt = $connection->prepare("SELECT * FROM product_category LEFT JOIN public.categories c on product_category.category_id = c.id");
+        $stmt = $connection->prepare("
+            select
+                id,
+                title as product_title,
+                category_id
+            from products p
+            left join product_category pc on p.id = pc.product_id
+        ");
         $stmt->execute();
         $result = $stmt->fetchAll();
 
@@ -99,15 +106,13 @@ class ProductRepository implements ProductRepositoryInterface
         foreach ($result as $productArray) {
             $product = new Product();
             $product->setId($productArray['id']);
-            $product->setTitle($productArray['title']);
+            $product->setTitle($productArray['product_title']);
             $product->setCategoryId($productArray['category_id']);
 
-            $products[] = [
-                'id' => $product->getId(),
-                'title' => $product->getTitle(),
-                'category_id' => $product->getCategoryId()
-            ];
+            $products[] = $product;
         }
+
+        $connection->commit();
 
         return $products;
     }
