@@ -79,6 +79,7 @@ class CategoryRepository implements CategoryRepositoryInterface
         $result = $stmt->fetch();
 
         if (!$result) {
+            $connection->rollback();
             return null;
         }
 

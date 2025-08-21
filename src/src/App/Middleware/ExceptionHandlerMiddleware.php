@@ -15,7 +15,6 @@ class ExceptionHandlerMiddleware implements MiddlewareInterface
         try {
             return $handler->handle($request);
         } catch (\Throwable $exception) {
-            // Логируем ошибку
             error_log(sprintf(
                 'Exception: %s in %s:%d',
                 $exception->getMessage(),
